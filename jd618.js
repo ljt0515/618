@@ -278,8 +278,8 @@ function timeTask() {
     }
 
     // 弹窗处理
-    let pop = text('升级开卡会员领好礼').exists()
-    if (pop) {
+    let pop = text('升级开卡会员领好礼')
+    if (pop.exists()) {
       pop.parent().parent().child(2).click()
       console.log('关闭会员弹窗')
     }
@@ -617,7 +617,6 @@ try {
     sleep(2000)
 
     openTaskList()
-    sleep(5000)
   } else {
     alert(
       '请关闭弹窗后立刻手动打开京东App进入活动页面，并打开任务列表',
@@ -629,8 +628,9 @@ try {
       quit()
     }
     console.log('成功进入活动')
-    sleep(2000)
   }
+
+  sleep(5000)
 
   try {
     console.log('获取初始金币数量')
