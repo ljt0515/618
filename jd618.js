@@ -78,7 +78,15 @@ function quit() {
 
 // 监听音量下键
 function registerKey() {
-  events.observeKey()
+  try {
+    events.observeKey()
+  } catch (err) {
+    console.log(
+      '监听音量键停止失败，应该是无障碍权限出错，请关闭软件后台任务重新运行。'
+    )
+    console.log('如果还是不行可以重启手机尝试。')
+    quit()
+  }
   events.onKeyDown('volume_down', function (event) {
     console.log('京东任务脚本停止了')
     console.log('请手动切换回主页面')
@@ -150,12 +158,16 @@ function getCoin() {
 // 打开任务列表
 function openTaskList() {
   console.log('打开任务列表')
-  let taskListButtons = findTextDescMatchesTimeout(/分红：.*份/, 20000)
+  let taskListButtons = findTextDescMatchesTimeout(/分红\+卡牌/, 20000)
   if (!taskListButtons) {
     console.log('未能打开任务列表，请关闭京东重新运行！')
     quit()
   }
-  taskListButtons = taskListButtons.parent().children()
+  if (taskListButtons.indexInParent() == 0) {
+    taskListButtons = taskListButtons.parent().parent().children()
+  } else {
+    taskListButtons = taskListButtons.parent().children()
+  }
 
   let taskListButton = null
   let flag = 0
@@ -271,7 +283,7 @@ function timeTask() {
     )
       // 等待已完成出现
       break
-    if (textMatches(/已达上限/).exists() || descMatches(/已达上限/).exists()) {
+    if (textMatches(/已浏览/).exists() || descMatches(/已浏览/).exists()) {
       // 失败
       console.log('上限，返回刷新任务列表')
       return false
@@ -280,7 +292,7 @@ function timeTask() {
     // 弹窗处理
     let pop = text('升级开卡会员领好礼')
     if (pop.exists()) {
-      pop.parent().parent().child(2).click()
+      pop.findOnce().parent().parent().child(2).click()
       console.log('关闭会员弹窗')
     }
 
@@ -316,8 +328,10 @@ function joinTask() {
       click(btn.centerX(), btn.centerY())
       sleep(500)
       console.show()
-      check = textMatches(/.*确认授权即同意.*/).findOne(8000)
       sleep(2000)
+      check = textMatches(/.*确认授权即同意.*/)
+        .boundsInside(0, 0, device.width, device.height)
+        .findOne(8000)
     }
 
     if (!check) {
@@ -469,7 +483,7 @@ function viewTask() {
 function wallTask() {
   console.log('进行品牌墙任务')
   sleep(3000)
-  for (let i of [2, 4, 5, 7, 8]) {
+  for (let i of [2, 3, 4, 5, 6]) {
     // 选5个
     console.log('打开一个')
     textContains('!q70')
@@ -710,7 +724,7 @@ try {
     err.toString() !=
     'JavaException: com.stardust.autojs.runtime.exception.ScriptInterruptedException: null'
   ) {
-    startCoin && console.log('本次任务开始时有' + startCoin + '金币')
     console.error(new Error().stack, err)
+    startCoin && console.log('本次任务开始时有' + startCoin + '金币')
   }
 }
