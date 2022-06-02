@@ -1,10 +1,16 @@
 ## 脚本说明
+<<<<<<< HEAD
 <font color='red'>**青龙脚本以废弃 请使用autojs脚本运行或使用打包app运行**</font>
 
 ~~jd_nm.js 此脚本为京东618 青龙脚本 直接通过~~
+=======
+青龙脚本以废弃 请使用autojs脚本运行或使用打包app运行
+>>>>>>> 4759134ac5cc8230a61a7393dda60c8fc01a2fe4
 
-`ql raw https://raw.fastgit.org/ljt0515/618/main/jd_nm.js`
-添加至青龙面板
+~~jd_nm.js 此脚本为京东618 青龙脚本 直接通过~~
+
+~~`ql raw https://raw.fastgit.org/ljt0515/618/main/jd_nm.js`~~
+~~添加至青龙面板~~
 
 autojs脚本请使用jd618.js
 
