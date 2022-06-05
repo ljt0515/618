@@ -4,7 +4,6 @@ if (!auto.service) {
 }
 
 console.show()
-
 function getSetting() {
   let indices = []
   autoOpen && indices.push(0)
@@ -120,7 +119,7 @@ function openAndInto() {
 
   app.startActivity({
     action: 'VIEW',
-    data: 'openApp.jdMobile://virtual?params={"category":"jump","action":"to","des":"m","sourceValue":"JSHOP_SOURCE_VALUE","sourceType":"JSHOP_SOURCE_TYPE","url":"https://u.jd.com/JCsm6Hl","M_sourceFrom":"mxz","msf_type":"auto"}',
+    data: 'openApp.jdMobile://virtual?params={"category":"jump","action":"to","des":"m","sourceValue":"JSHOP_SOURCE_VALUE","sourceType":"JSHOP_SOURCE_TYPE","url":"https://u.jd.com/lM6G0Zf","M_sourceFrom":"mxz","msf_type":"auto"}',
   })
 }
 
@@ -319,7 +318,7 @@ function joinTask() {
     return true
   } else {
     sleep(2000)
-    if (check.text().match(/.*立即开卡.*|.*解锁全部会员福利.*/)) {
+    if (check.text().match(/.*立即开卡.*|.*解锁全部会员福利.*|授权解锁/)) {
       let btn = check.bounds()
       console.log('即将点击开卡/解锁福利，自动隐藏控制台')
       sleep(500)
@@ -328,7 +327,7 @@ function joinTask() {
       click(btn.centerX(), btn.centerY())
       sleep(500)
       console.show()
-      sleep(2000)
+      sleep(5000)
       check = textMatches(/.*确认授权即同意.*/)
         .boundsInside(0, 0, device.width, device.height)
         .findOne(8000)
@@ -339,16 +338,23 @@ function joinTask() {
       return false
     }
 
-    if (check.indexInParent() == 6) {
-      check = check.parent().child(5)
-    } else if (check.text() == '确认授权即同意') {
-      check = check.parent().child(0)
+    // text("instruction_icon") 全局其实都只有一个, 保险起见, 使用两个parent来限定范围
+    let checks = check.parent().parent().find(text('instruction_icon'))
+    if (checks.size() > 0) {
+      // 解决部分店铺(欧莱雅)开卡无法勾选 [确认授权] 的问题
+      check = checks.get(0)
     } else {
-      check = check.parent().parent().child(5)
+      if (check.indexInParent() == 6) {
+        check = check.parent().child(5)
+      } else if (check.text() == '确认授权即同意') {
+        check = check.parent().child(0)
+      } else {
+        check = check.parent().parent().child(5)
+      }
     }
 
     check = check.bounds()
-
+    log('最终[确认授权]前面选项框坐标为:', check)
     let x = check.centerX()
     let y = check.centerY()
 
@@ -363,7 +369,7 @@ function joinTask() {
     if (float.length > 1) {
       console.log('有浮窗遮挡，尝试移除')
       if (device.sdkInt >= 24) {
-        gesture(1000, [x, y], [x, y + 200])
+        gesture(1000, [x, y], [x, y + 300])
         console.log('已经进行移开操作，如果失败请反馈')
       } else {
         console.log(
@@ -378,7 +384,7 @@ function joinTask() {
     console.log('即将勾选授权，自动隐藏控制台')
     sleep(500)
     console.hide()
-    sleep(500)
+    sleep(1000)
     click(x, y)
     sleep(500)
     console.show()
@@ -616,6 +622,18 @@ function signTask() {
   return true
 }
 
+// 领取金币
+function havestCoin() {
+  console.log('准备领取自动积累的金币')
+  let h = descMatches(/.*领取金币.*|.*后满.*/).findOne(5000)
+  if (h) {
+    h.click()
+    console.log('领取成功')
+  } else {
+    console.log('未找到金币控件，领取失败')
+  }
+}
+
 let startCoin = null // 音量键需要
 
 // 全局try catch，应对无法显示报错
@@ -654,7 +672,9 @@ try {
     console.log('获取金币失败，跳过', err)
   }
 
-  sleep(2000)
+  sleep(1000)
+  havestCoin()
+  sleep(1000)
 
   // 完成所有任务的循环
   while (true) {
@@ -672,6 +692,10 @@ try {
 
       console.log('最后进行签到任务')
       signTask()
+
+      sleep(1000)
+      havestCoin()
+      sleep(1000)
 
       let endCoin = null
       try {

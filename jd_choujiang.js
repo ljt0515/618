@@ -3,7 +3,6 @@ if (!auto.service) {
   exit()
 }
 
-
 console.show()
 
 function getSetting() {
@@ -64,7 +63,15 @@ function quit() {
 
 // 监听音量下键
 function registerKey() {
-  events.observeKey()
+  try {
+    events.observeKey()
+  } catch (err) {
+    console.log(
+      '监听音量键（用于停止脚本）失败，应该是无障碍权限出错，请关闭软件后台任务重新运行。'
+    )
+    console.log('如果还是不行可以重启手机尝试。')
+    quit()
+  }
   events.onKeyDown('volume_down', function (event) {
     console.log('京东任务脚本停止了')
     console.log('请手动切换回主页面')
@@ -97,7 +104,7 @@ function openAndInto() {
 
   app.startActivity({
     action: 'VIEW',
-    data: 'openApp.jdMobile://virtual?params={"category":"jump","action":"to","des":"m","sourceValue":"JSHOP_SOURCE_VALUE","sourceType":"JSHOP_SOURCE_TYPE","url":"https://u.jd.com/JLWf92u","M_sourceFrom":"mxz","msf_type":"auto"}',
+    data: 'openApp.jdMobile://virtual?params={"category":"jump","action":"to","des":"m","sourceValue":"JSHOP_SOURCE_VALUE","sourceType":"JSHOP_SOURCE_TYPE","url":"https://u.jd.com/lM6Qy1U","M_sourceFrom":"mxz","msf_type":"auto"}',
   })
 }
 
@@ -134,37 +141,35 @@ function getCoin() {
 
 // 打开抽奖页
 function openPage() {
-  let anchor = className('android.view.View')
-    .filter(function (w) {
-      return (
-        w.clickable() && (w.text() == '去使用奖励' || w.desc() == '去使用奖励')
-      )
-    })
-    .findOne(5000)
+  button = findTextDescMatchesTimeout(/分红：.*份/, 20000)
+  button = button.parent().children()
+  button[0].click()
 
-  if (!anchor) {
-    console.log('未找到使用奖励按钮，打开抽奖页失败')
-    return false
-  }
-
-  let anchor_index = anchor.indexInParent()
-  let sign = anchor.parent().child(anchor_index + 1) // 去使用的后1个
-  sign.child(0).child(0).click() // child才可以点
-
-  return text('剩余抽奖次数').findOne(8000)
+  return text('累计获得').findOne(8000)
 }
 
 // 查找任务，返回所有任务
 function findTasks() {
-  let anchor = text('剩余抽奖次数').findOnce()
+  let anchor = findTextDescMatchesTimeout('剩余抽奖次数', 20000)
   if (!anchor) {
     console.log('无法找到抽奖次数控件')
     return false
   }
   console.log('打开任务列表')
-  anchor.parent().parent().parent().parent().child(1).click()
+  anchor = anchor.parent().parent().parent().parent()
+
+  if (anchor.childCount() == 8) {
+    // 关闭弹窗
+    if (anchor.child(7).childCount() > 0) {
+      console.log('关闭弹窗')
+      anchor.child(7).child(0).child(0).child(0).child(3).click()
+      sleep(1000)
+    }
+  }
+
+  anchor.child(1).click()
   sleep(5000)
-  let go = text('去完成').findOnce()
+  let go = findTextDescMatchesTimeout('去完成', 2000)
   if (!go) {
     console.log('似乎未能打开任务列表')
     return false
@@ -227,7 +232,9 @@ function joinTask() {
       click(btn.centerX(), btn.centerY())
       sleep(500)
       console.show()
-      check = textMatches(/.*确认授权即同意.*/).findOne(8000)
+      check = textMatches(/.*确认授权即同意.*/)
+        .boundsInside(0, 0, device.width, device.height)
+        .findOne(8000)
       sleep(2000)
     }
 
@@ -310,11 +317,12 @@ function doTask(task) {
       return rect.left > 0 && rect.top <= device.height
     })
 
-    if (!itemFilter.findOne(8000)) {
+    console.log('查找商品，等待至多20秒')
+    if (!itemFilter.findOne(20000)) {
       console.log('未能找到加购商品')
       return false
     }
-    console.log('查找商品')
+
     let items = itemFilter.find()
     if (items.empty() || items.length < 2) {
       console.log('查找商品失败')
@@ -346,7 +354,8 @@ function openBox() {
     console.log('未能找到抽奖提示')
     return false
   }
-  let count = anchor.parent().child(1)
+
+  let count = anchor.parent().child(1).text()
   if (!parseInt(count)) {
     console.log('没有抽奖次数，返回')
     return true
@@ -398,62 +407,68 @@ try {
   } catch (err) {
     console.log('获取金币失败，跳过', err)
   }
+  if (openPage()) {
+    // 完成所有任务的循环
+    let taskListButton = className('android.view.View')
+      .text('去抽奖 赢1分购品牌大礼')
+      .findOne()
+      .parent()
+      .child(1)
+      .children()
+    for (let index = 0; index < taskListButton.length; index++) {
+      taskListButton[index].click()
+      console.log('打开抽奖页面')
 
-  // 完成所有任务的循环
-  while (true) {
-    try {
-      console.log('获取当前金币数量')
-      endCoin = getCoin()
-      console.log('当前共有' + endCoin + '金币')
-    } catch (err) {
-      console.log('获取金币失败，跳过', err)
-    }
-
-    console.log('打开抽奖页面')
-    if (openPage()) {
       let tasks = findTasks()
-      if (!tasks) {
-        console.log('无法找到任务，可能是已经完成。退出。')
-        console.log('有时候可能抽奖失败，自己点进抽奖页再看一看。')
-        startCoin &&
-          endCoin &&
-          console.log('本次任务共获得' + (endCoin - startCoin) + '金币')
-        quit()
-      }
       for (let i = 0; i < tasks.length; i++) {
         if (!autoJoin && tasks[i][0].match(/会员/)) {
           continue
         }
         if (!doTask(tasks[i])) {
-          console.log('任务失败，退出')
-          quit()
+          // console.log('任务失败，退出')
+          // quit()
+          console.log('任务出现失败，换一个抽奖进行')
+          break
         }
         sleep(5000)
       }
-    } else {
-      console.log('打开抽奖页失败，退出')
-      quit()
-    }
-    console.log('准备抽奖')
-    if (!openBox()) {
-      console.log('抽奖失败，退出')
-      quit()
-    }
-    console.log('准备重新打开获取任务')
-    sleep(2000)
-    back()
-    console.log('返回上一级')
-    if (!findTextDescMatchesTimeout(/.*去使用奖励.*/, 8000)) {
-      console.log('未能返回到活动主页，重试')
       back()
-      if (!findTextDescMatchesTimeout(/.*去使用奖励.*/, 8000)) {
-        console.log('未能返回到活动主页，退出')
+      sleep(1000)
+      taskListButton[index].click()
+      sleep(5000)
+      console.log('准备抽奖')
+      if (!openBox()) {
+        console.log('抽奖失败，退出')
         quit()
       }
+      console.log('准备重新打开获取任务')
+      sleep(2000)
+      back()
+      console.log('返回上一级')
+      if (!findTextDescMatchesTimeout(/.*累计获得.*/, 8000)) {
+        console.log('未能返回到活动主页，重试')
+        back()
+        if (!findTextDescMatchesTimeout(/.*去使用奖励.*/, 8000)) {
+          console.log('未能返回到活动主页，退出')
+          quit()
+        }
+      }
+      console.log('任务完成，准备抽奖')
+      console.log('准备进行下一次任务')
+      sleep(2000)
     }
-    console.log('任务完成，准备抽奖')
-    console.log('准备进行下一次任务')
-    sleep(2000)
+  } else {
+    console.log('打开抽奖页失败，退出')
+    quit()
+  }
+  back()
+  try {
+    console.log('获取当前金币数量')
+    endCoin = getCoin()
+    console.log('当前共有' + endCoin + '金币')
+    console.log('本次任务共获得' + (endCoin - startCoin) + '金币')
+  } catch (err) {
+    console.log('获取金币失败，跳过', err)
   }
 } catch (err) {
   device.cancelKeepingAwake()
@@ -461,8 +476,7 @@ try {
     err.toString() !=
     'JavaException: com.stardust.autojs.runtime.exception.ScriptInterruptedException: null'
   ) {
-    startCoin && console.log('本次任务开始时有' + startCoin + '金币')
     console.error(new Error().stack, err)
+    startCoin && console.log('本次任务开始时有' + startCoin + '金币')
   }
-  showVersion()
 }

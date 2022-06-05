@@ -1,10 +1,3 @@
-if (!auto.service) {
-  toast('无障碍服务未启动！')
-  exit()
-}
-
-// alert('请把手机放稳，不要摇晃！', '不然有时候会跳出合伙赢喵币，导致任务阻塞')
-
 function getSetting() {
   let indices = []
   autoOpen && indices.push(0)
@@ -56,7 +49,6 @@ if (autoMute) {
 }
 
 console.show()
-showVersion()
 console.log('开始完成喵糖任务...')
 console.log('按音量下键停止')
 
@@ -170,7 +162,7 @@ try {
     while (finish_c < 50) {
       // 0.5 * 50 = 25 秒，防止死循环
       let finish_reg =
-        /.*任务已完成.*|.*失败.*|.*上限.*|.*开小差.*|.*喵币已发放.*/
+        /.*任务已完成[\s\S]*|.*失败.*|.*上限.*|.*开小差.*|.*喵币已发放[\s\S]*/
       if (
         textMatches(finish_reg).exists() ||
         descMatches(finish_reg).exists()
@@ -289,7 +281,7 @@ try {
 
     if (jumpButton == null) {
       // 没有任务之后领取奖励
-      var awardButtonFind = textMatches(/立即领取/)
+      var awardButtonFind = textMatches(/立即领取|领取奖励/)
       var awardButtons = findTimeout(awardButtonFind, 10000)
 
       if (awardButtons) {
