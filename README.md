@@ -15,7 +15,5 @@ app下载路径 https://cxzdy.lanzoub.com/b011nfded 密码 jd618
 京东618，你还在找组织吗？来这里，加群获取最新消息，互助，脚本，每天固定组队
 qq群  微信群
 
-<img src="https://raw.githubusercontent.com/ljt0515/618/main/87CE36BC9B5823EF634C12F86B0DA2F0.jpg" width="300px">
-
-<img src="https://raw.githubusercontent.com/ljt0515/618/main/wechart.png" width="300px">
+<img src="https://raw.githubusercontent.com/ljt0515/618/main/87CE36BC9B5823EF634C12F86B0DA2F0.jpg" width="300px"><img src="https://raw.githubusercontent.com/ljt0515/618/main/wechart.png" width="300px">
 
