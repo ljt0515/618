@@ -1,13 +1,14 @@
 ## 脚本说明
+<font color='red'>已支持京东双十一热爱穿行季 </font>
 <font color='red'>**青龙脚本以废弃 请使用autojs脚本运行或使用打包app运行**</font>
 ~~jd_nm.js 此脚本为京东618 青龙脚本 直接通过~~
 
 ~~`ql raw https://raw.fastgit.org/ljt0515/618/main/jd_nm.js`~~
 ~~添加至青龙面板~~
 
-autojs脚本请使用jd618.js
+autojs脚本请使用jd20221111.js
 
-app下载路径 https://cxzdy.lanzoub.com/b011nfded 密码 jd618
+app下载路径 https://cxzdy.lanzoub.com/b0125rrzi  密码 jd11
 
 <font color='red'>**各大平台优惠卷不断袭来 打开微信扫一扫关注获取内部优惠**</font>
 
