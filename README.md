@@ -18,5 +18,6 @@ app下载路径 https://cxzdy.lanzoub.com/b0125rrzi  密码 jd11
 
 qq群               微信群
 
-<img src="https://raw.githubusercontent.com/ljt0515/618/main/87CE36BC9B5823EF634C12F86B0DA2F0.jpg" width="300px"><img src="https://raw.githubusercontent.com/ljt0515/618/main/wechart.png" width="300px">
+<img src="https://raw.githubusercontent.com/ljt0515/618/main/qrcode_1666778378599.jpg" width="300px"><img src="https://raw.githubusercontent.com/ljt0515/618/main/wechart.png" width="300px">
+<img src="https://raw.githubusercontent.com/ljt0515/618/main/87CE36BC9B5823EF634C12F86B0DA2F0.jpg" width="300px">
 

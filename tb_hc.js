@@ -33,10 +33,16 @@ function getSetting() {
     }
 }
 
-let storage = storages.create("tb_task");
-let autoOpen = storage.get('autoOpen', true)
-let autoMute = storage.get('autoMute', true)
-getSetting()
+let storage ,autoOpen,autoMute
+if(Object.keys(args).length>0){
+    autoOpen = args.autoOpen
+    autoMute = args.autoMute
+}else{
+    storage = storages.create("tb_task");
+    autoOpen = storage.get('autoOpen', true)
+    autoMute = storage.get('autoMute', true)
+    getSetting()
+}
 
 if (autoMute) {
     try {
