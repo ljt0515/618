@@ -3,7 +3,6 @@ if (!auto.service) {
     toast('无障碍服务未启动！退出！')
     exit()
 }
-
 function getSetting() {
     let indices = []
     autoOpen && indices.push(0)
@@ -33,16 +32,10 @@ function getSetting() {
     }
 }
 
-let storage ,autoOpen,autoMute
-if(Object.keys(args).length>0){
-    autoOpen = args.autoOpen
-    autoMute = args.autoMute
-}else{
-    storage = storages.create("tb_task");
-    autoOpen = storage.get('autoOpen', true)
-    autoMute = storage.get('autoMute', true)
-    getSetting()
-}
+let storage = storages.create("tb_task");
+let autoOpen = storage.get('autoOpen', true)
+let autoMute = storage.get('autoMute', true)
+getSetting()
 
 if (autoMute) {
     try {
@@ -266,14 +259,16 @@ try {
     console.log('首先关闭弹窗')
     try {
         idContains('J_wfdlgwrap_6').findOnce().child(0).click()
-        sleep(1000)
+        sleep(5000)
+        console.log('领红包弹窗已关闭')
     } catch (err) {
         console.log(err)
         console.log('领红包弹窗关闭失败。此问题不影响运行')
     }
     try {
         idContains('CLOSE').findOnce().click()
-        sleep(1000)
+        sleep(2000)
+        console.log('其他弹窗已关闭')
     } catch (err) {
         console.log(err)
         console.log('其他弹窗关闭失败。此问题不影响运行')
@@ -332,7 +327,7 @@ try {
                 sleep(2000)
                 buttons[i].click()
                 console.log('等待加载')
-                if (text('加入购物车').findOne(10000)|| desc("加入购物车").findOne(10000) || currentActivity() == 'com.taobao.android.detail.wrapper.activity.DetailActivity') {
+                if (text(/加入购物车|粉丝福利购/).findOne(10000)|| desc("加入购物车").findOne(10000) || currentActivity() == 'com.taobao.android.detail.wrapper.activity.DetailActivity') {
                     console.log('商品打开成功，返回')
                     back()
                     if (!text('双11超红精选热卖').findOne(10000)) {
