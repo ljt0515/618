@@ -317,9 +317,11 @@ try {
                 scrollDown()
                 sleep(2000)
                 buttons = textContains('item_pic').find()
+                console.log(buttons.length)
             }
             if (count > buttons.length) {
-                throw '商品数量不足，退出任务'
+                console.log('商品数量不足，分次完成')
+                count = buttons.length
             }
 
             for (let i = 0; i < count; i++) {
@@ -327,7 +329,7 @@ try {
                 sleep(2000)
                 buttons[i].click()
                 console.log('等待加载')
-                if (text(/加入购物车|粉丝福利购/).findOne(10000)|| desc("加入购物车").findOne(10000) || currentActivity() == 'com.taobao.android.detail.wrapper.activity.DetailActivity') {
+                if (findTextDescMatchesTimeout(/加入购物车|粉丝福利购/,10000) || currentActivity() == 'com.taobao.android.detail.wrapper.activity.DetailActivity') {
                     console.log('商品打开成功，返回')
                     back()
                     if (!text('双11超红精选热卖').findOne(10000)) {
@@ -335,10 +337,13 @@ try {
                         back()
                     }
                 } else {
-                    throw '商品页未能加载'
+                    if (!text('双11超红精选热卖').findOne(10000)) {
+                        console.log('似乎加载成功，返回')
+                        back()
+                    }
                 }
             }
-            sleep(1000)
+            // sleep(1000)
             backToList()
         } else if (jumpButton[0].match(/搜索/)) {
             jumpButton[1].click()
@@ -349,15 +354,17 @@ try {
                 listView.child(1).click()
             }
             liulan()
+            sleep(1000)
+            back()
             backToList()
-        } else if (jumpButton[0].match(/为你推荐/)) {
+        } else if (jumpButton[0].match(/为你推荐|主会场/)) {
             jumpButton[1].click()
             liulan()
         } else {
             jumpButton[1].click()
             liulan()
-            sleep(1000)
-            back()
+            // sleep(1000)
+            // back()
             backToList()
         }
 
