@@ -1,5 +1,5 @@
 ## 脚本说明
-<font color='red'>已支持京东双十一热爱穿行季 </font>
+<font color='red'>已支持京东2023年货节炸年兽活动 </font>
 <font color='red'>**青龙脚本以废弃 请使用autojs脚本运行或使用打包app运行**</font>
 ~~jd_nm.js 此脚本为京东618 青龙脚本 直接通过~~
 
