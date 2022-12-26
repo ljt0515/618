@@ -6,7 +6,7 @@
 ~~`ql raw https://raw.fastgit.org/ljt0515/618/main/jd_nm.js`~~
 ~~添加至青龙面板~~
 
-autojs脚本请使用jd20221111.js
+autojs脚本请使用zns_zs.js
 
 app下载路径 https://cxzdy.lanzoub.com/b0125rrzi  密码 jd11
 
