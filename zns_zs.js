@@ -586,7 +586,26 @@ function doTask(tButton, tText, tTitle) {
 }
 
 function signTask() {
-    let anchor = text('记录').findOne(5000)
+    console.log('尝试关闭弹窗')
+
+    let anchor = textMatches(/\+\d*爆竹/).findOnce();
+
+    for (let i = 0; i < 5 && anchor; i++) {
+        try {
+            let tmp = anchor.parent().parent().child(0)
+            if (!tmp.clickable()) {
+                tmp = anchor.parent().parent().parent().child(0)
+            }
+            tmp.click()
+            console.log('关闭')
+            sleep(1000)
+            anchor = textMatches(/\+\d*爆竹/).findOnce()
+        } catch (err) {
+            pass
+        }
+    }
+
+    anchor = text('记录').findOne(5000)
     if (!anchor) {
         console.log('未能定位，签到失败')
         quit()
@@ -594,9 +613,12 @@ function signTask() {
     let sign
     if (anchor.indexInParent() < 3) {
         anchor = anchor.parent()
-        sign = anchor.parent().child(10)
-    } else {
-        sign = anchor.parent().child(10)
+    }
+
+    sign = anchor.parent().child(10)
+
+    if (!sign.clickable()) {
+        sign = anchor.parent().child(11)
     }
 
     sign.click()
@@ -613,6 +635,7 @@ function signTask() {
 
     sign = anchor.child(anchor.childCount() - 2)
 
+    console.log('点击签到')
     return sign.click()
 }
 
@@ -663,7 +686,7 @@ try {
         console.log('获取金币失败，跳过', err)
     }
 
-    // havestCoin()
+    havestCoin()
 
     // 完成所有任务的循环
     while (true) {
@@ -680,7 +703,7 @@ try {
             havestCoin()
 
             console.log('最后进行签到任务')
-            signTask()
+            let signT = signTask()
 
             let endCoin = null
             try {
@@ -699,8 +722,13 @@ try {
                 console.log('本次运行获得金币无法计算，具体原因请翻阅日志。')
             }
 
-            // alert('任务已完成', '别忘了在脚本主页领取年货节红包！')
-            alert('任务已完成', '互动任务手动完成之后还会有新任务，建议做完互动二次运行脚本')
+            alert('任务已完成', '别忘了在脚本主页领取年货节红包！')
+
+            if (!signT) {
+                alert('本次签到失败', '请手动签到避免漏签（活动页右上角）')
+            }
+
+            // alert('任务已完成', '互动任务手动完成之后还会有新任务，建议做完互动二次运行脚本')
             quit()
         }
 

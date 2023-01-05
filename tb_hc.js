@@ -1,3 +1,4 @@
+const VERSION = 'V7'
 
 if (!auto.service) {
     toast('无障碍服务未启动！退出！')
@@ -116,7 +117,7 @@ try {
             console.log('默认方式打开失败，二次尝试')
             console.log('首先检测弹窗')
             try {
-                idContains('J_wfdlgwrap_6').findOnce().child(0).click()
+                idContains('J_wfdlgwrap_5').findOnce().child(0).click()
                 sleep(1000)
             } catch (err) {
                 console.log(err)
@@ -258,7 +259,7 @@ try {
 
     console.log('首先关闭弹窗')
     try {
-        idContains('J_wfdlgwrap_6').findOnce().child(0).click()
+        idContains('J_wfdlgwrap_5').findOnce().child(0).click()
         sleep(5000)
         console.log('领红包弹窗已关闭')
     } catch (err) {
@@ -302,13 +303,18 @@ try {
             sleep(2000)
             let count = jumpButton[0].match(/浏览(\d*)个/)[1]
             console.log('等待页面')
-            if (!text('精选热卖').findOne(8000)) {
+            if (!textContains('超红精选热卖').findOne(8000)) {
                 throw '商品页面未加载'
             }
+            try {
+                count -= idContains('J_wf_node_2_time').findOne(5000).text()
+            } catch(err) {
+                console.log('获取数量失败，使用默认值', err)
+            }
             console.log('点击', count, '个商品')
-            let buttons = textContains('item_pic').find()
+            let buttons = textContains('q75').find()
             if (!buttons) {
-                throw '无法找到马上抢按钮，任务失败'
+                throw '无法找到商品，任务失败'
             }
             for (let i = 0; i < 10 && count > buttons.length; i++) {
                 console.log('商品数量不足，向下翻页', buttons.length)
@@ -316,7 +322,7 @@ try {
                 sleep(2000)
                 scrollDown()
                 sleep(2000)
-                buttons = textContains('item_pic').find()
+                buttons = textContains('q75').find()
                 console.log(buttons.length)
             }
             if (count > buttons.length) {
@@ -332,15 +338,12 @@ try {
                 if (findTextDescMatchesTimeout(/加入购物车.*|粉丝福利购/,10000) || currentActivity() == 'com.taobao.android.detail.wrapper.activity.DetailActivity') {
                     console.log('商品打开成功，返回')
                     back()
-                    if (!text('精选热卖').findOne(10000)) {
+                    if (!textContains('超红精选热卖').findOne(10000)) {
                         console.log('似乎没有返回，二次尝试')
                         back()
                     }
                 } else {
-                    if (!text('精选热卖').findOne(10000)) {
-                        console.log('似乎加载成功，返回')
-                        back()
-                    }
+                    throw '商品页未能加载'
                 }
             }
             // sleep(1000)
