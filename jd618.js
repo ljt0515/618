@@ -116,12 +116,12 @@ function openAndInto() {
 
 // 获取金币数量
 function getCoin() {
-    let anchor = textMatches(/\d*个/).findOne(5000)
+    let anchor = text('累计已拆').findOne(5000)
     if (!anchor) {
-        console.log('找不到消耗控件')
+        console.log('找不到控件')
         return false
     }
-    let coin = anchor.text()
+    let coin = anchor.parent().child(1).text()
     if (coin) {
         return parseInt(coin)
     } else {
@@ -236,7 +236,7 @@ function getTaskByText() {
                 if (tCount) { // 如果数字相减不为0，证明没完成
                     tText = task[3].text()
                     if (!autoJoin && tText.match(/成功入会/)) continue
-                    if (tTitle.match(/下单|小程序|裂变/)) continue
+                    if (tTitle.match(/下单|小程序|裂变|白条|小游戏/) || tText.match(/绑卡/)) continue
                     tButton = button
                     break
                 }
@@ -417,8 +417,9 @@ function joinTask() {
 // 浏览商品和加购的任务，cart参数为是否加购的flag
 function itemTask(cart) {
     console.log('等待进入商品列表...')
-    if (!textContains('当前页').findOne(20000)) {
+    if (!findTextDescMatchesTimeout('/.*当前页.*/',20000)) {
         console.log('未能进入商品列表。')
+        console.log(textContains('.jpg!q70').findOnce());
         return false
     }
     sleep(2000)
@@ -447,6 +448,7 @@ function itemTask(cart) {
 // 逛店任务 TODO: 618版本
 function shopTask() {
     console.log('等待进入店铺列表...')
+    console.log(textContains('互动种草').findOne(10000));
     let banner = textContains('喜欢').findOne(10000)
     if (!banner) {
         console.log('未能进入店铺列表。返回。')
@@ -460,7 +462,7 @@ function shopTask() {
     }
     sleep(2000)
     console.log('进行', c, '次')
-    let like = textContains('喜欢').boundsInside(1, 0, device.width, device.height).findOnce(1)
+    let like = text('喜欢').boundsInside(1, 0, device.width, device.height).findOnce()
     if (!like) {
         console.log('未能找到喜欢按钮。返回。')
         return false
@@ -552,15 +554,40 @@ function doTask(tButton, tText, tTitle) {
     } else if (tText.match(/打卡|首页/)) {
         tFlag = clickFlag // 打卡点击一次即可
         return tFlag
+    } else if (tText.match(/组队/)) {
+        console.log('等待组队任务')
+        sleep(3000)
+        if (findTextDescMatchesTimeout(/.*每做一次任务.*/, 1000)) {
+            console.log('当前仍在任务列表，说明已经完成任务且领取奖励，返回')
+            return true
+        } else {
+            if (textContains('队伍快递箱').findOne(10000)) {
+                console.log('进入到组队页面，返回')
+                backToList()
+                console.log('等待领取奖励')
+                sleep(2000)
+                tFlag = tButton.click()
+                sleep(2000)
+                return tFlag
+            } else {
+                console.log('未能进入组队')
+                if (findTextDescMatchesTimeout(/.*每做一次任务.*/, 1000)) {
+                    console.log('当前仍在任务列表，返回')
+                    return true
+                } else {
+                    console.log('组队任务未检测到页面标识，视为已完成')
+                    tFlag = false
+                }
+            }
+        }
     } else {
         console.log('未知任务类型，默认为浏览任务', tText)
         tFlag = timeTask()
     }
     backToList()
-    popUpFrame()
     return tFlag
 }
-function popUpFrame(){
+function closePop(){
     let anchor = text('已放入首页＞记录').findOne(5000);
     if(anchor){
         anchor = anchor.parent()
@@ -570,6 +597,8 @@ function popUpFrame(){
         }
         return closeBtn.click()
     }
+    console.log('未查询到弹窗按钮')
+    return false
 }
 function signTask() {
     console.log('尝试关闭弹窗')
@@ -636,7 +665,7 @@ function havestCoin() {
     } else { console.log('未找到金币控件，领取失败') }
 }
 
-
+let startCoin = null
 // 全局try catch，应对无法显示报错
 try {
     if (autoOpen) {
@@ -654,7 +683,7 @@ try {
     } else {
         alert('请关闭弹窗后立刻手动打开京东App进入活动页面，并打开任务列表', '限时30秒')
         console.log('请手动打开京东App进入活动页面，并打开任务列表')
-        if (!findTextDescMatchesTimeout(/拆快递/, 30000)) {
+        if (!findTextDescMatchesTimeout(/每做一次任务.*|攻略/, 8000)) {
             console.log('未能进入活动，请重新运行！')
             quit()
         }
@@ -662,7 +691,13 @@ try {
     }
 
     sleep(5000)
-
+    try {
+        console.log('获取初始快递箱数量')
+        startCoin = getCoin()
+        console.log('当前共有' + startCoin + '快递箱')
+    } catch (err) {
+        console.log('获取快递箱失败，跳过', err)
+    }
     // 完成所有任务的循环
     while (true) {
         let [taskButton, taskText, taskCount, taskTitle] = getTaskByText()
@@ -676,10 +711,22 @@ try {
                 sleep(2000)
             })
 
+            let endCoin = null
+            try {
+                console.log('获取结束快递箱数量')
+                endCoin = getCoin()
+                console.log('当前共有' + endCoin + '快递箱')
+            } catch (err) {
+                console.log('获取快递箱失败，跳过', err)
+            }
 
             console.log('没有可自动完成的任务了，退出。')
             console.log('互动任务、下单任务需要手动完成。')
-          
+            if (startCoin && endCoin) {
+                console.log('本次运行获得' + (endCoin - startCoin) + '快递箱')
+            } else {
+                console.log('本次运行获得快递箱无法计算，具体原因请翻阅日志。')
+            }
             alert('任务已完成', '别忘了在脚本主页领取红包！')
 
             quit()
@@ -694,6 +741,11 @@ try {
         for (let i = 0; i < taskCount; i++) {
             console.log('第' + (i + 1) + '次')
             let taskFlag = doTask(taskButton, taskText, taskTitle)
+            if (text('已放入首页＞记录').exists()) {
+                console.log('关闭弹窗')
+                closePop()
+                sleep(3000)
+            }
             if (taskFlag) {
                 console.log('完成，进行下一个任务')
             } else {
@@ -708,5 +760,6 @@ try {
     device.cancelKeepingAwake()
     if (err.toString() != 'JavaException: com.stardust.autojs.runtime.exception.ScriptInterruptedException: null') {
         console.error(err)
+        startCoin && console.log('本次任务开始时有' + startCoin + '快递箱')
     }
 }
