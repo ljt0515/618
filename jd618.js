@@ -81,6 +81,7 @@ function registerKey() {
     events.onKeyDown('volume_down', function (event) {
         console.log('京东任务脚本停止了')
         console.log('请手动切换回主页面')
+        startCoin && console.log('本次任务开始时有' + startCoin + '快递箱')
         quit()
     })
 }
@@ -103,6 +104,15 @@ function openAndInto() {
     console.log('正在打开京东App...')
     if (!launch('com.jingdong.app.mall')) {
         console.log('可能未安装京东App')
+    } else {
+        console.log('等待京东打开')
+        for (let i = 0; i < 20; i++) {
+            if (currentPackage() == 'com.jingdong.app.mall') break
+            sleep(400)
+        }
+        if (currentPackage() != 'com.jingdong.app.mall') {
+            console.log('程序检测京东app打开失败，请注意')
+        }
     }
 
     sleep(2000)
@@ -114,7 +124,7 @@ function openAndInto() {
     })
 }
 
-// 获取金币数量
+// 获取快递箱数量
 function getCoin() {
     let anchor = text('累计已拆').findOne(5000)
     if (!anchor) {
@@ -274,12 +284,12 @@ function timeTask() {
     while (c < 40) { // 0.5 * 40 = 20 秒，防止死循环
         if ((textMatches(/获得.*?快递箱/).exists() || descMatches(/获得.*?快递箱/).exists())) // 等待已完成出现
             break
-        if ((textMatches(/已浏览/).exists() || descMatches(/已浏览/).exists())) { // 失败
+        if ((textMatches(/已.*?浏.*?览/).exists() || descMatches(/已.*?浏.*?览/).exists())) { // 失败
             console.log('上限，返回刷新任务列表')
             return false
         }
-        if ((textMatches(/已 浏 览/).exists() || descMatches(/已 浏 览/).exists())) { // 失败
-            console.log('上限，返回刷新任务列表')
+        if ((textMatches(/出.*?错.*?了/).exists() || descMatches(/出.*?错.*?了/).exists())) {
+            console.log('任务出错，返回刷新任务列表')
             return false
         }
         if (textMatches(/.*滑动浏览.*[^可]得.*/).exists()) {
@@ -417,12 +427,18 @@ function joinTask() {
 // 浏览商品和加购的任务，cart参数为是否加购的flag
 function itemTask(cart) {
     console.log('等待进入商品列表...')
-    if (!findTextDescMatchesTimeout('/.*当前页.*/',20000)) {
+    let anchor = textContains('当前页').findOne(20000)
+    if (!anchor) {
         console.log('未能进入商品列表。')
-        console.log(textContains('.jpg!q70').findOnce());
         return false
     }
     sleep(2000)
+
+    if (anchor.parent().childCount()==4) {
+        console.log('任务重复完成，返回')
+        return false
+    }
+
     let items = textContains('.jpg!q70').find()
     for (let i = 0; i < items.length; i++) {
         console.log('浏览')
@@ -448,7 +464,6 @@ function itemTask(cart) {
 // 逛店任务 TODO: 618版本
 function shopTask() {
     console.log('等待进入店铺列表...')
-    console.log(textContains('互动种草').findOne(10000));
     let banner = textContains('喜欢').findOne(10000)
     if (!banner) {
         console.log('未能进入店铺列表。返回。')
@@ -493,7 +508,7 @@ function viewTask() {
     return true
 }
 
-// 品牌墙任务 TODO: 年货节版本
+// 品牌墙任务 TODO: 618版本
 function wallTask() {
     console.log('进行品牌墙任务')
     sleep(3000)
@@ -514,7 +529,7 @@ function wallTask() {
 }
 
 // 单个任务的function，自动进入任务、自动返回任务列表，返回boolean
-// TODO: 年货节 
+// TODO: 618 
 function doTask(tButton, tText, tTitle) {
     let clickFlag = tButton.click()
     let tFlag
@@ -545,7 +560,7 @@ function doTask(tButton, tText, tTitle) {
     } else if (tText.match(/入会/)) {
         console.log('进行入会任务')
         tFlag = joinTask()
-    } else if (tText.match(/浏览可得.*|浏览并关注|晚会|参与/)) {
+    } else if (tText.match(/浏览可得|浏览可获得|浏览并关注|晚会|参与/)) {
         if (tTitle.match(/种草城/)) {
             tFlag = shopTask()
         } else {
@@ -603,7 +618,7 @@ function closePop(){
 function signTask() {
     console.log('尝试关闭弹窗')
 
-    let anchor = textMatches(/\+\d*爆竹/).findOnce();
+    let anchor = textMatches(/\+\d*快递箱/).findOnce();
 
     for (let i = 0; i < 5 && anchor; i++) {
         try {
@@ -614,7 +629,7 @@ function signTask() {
             tmp.click()
             console.log('关闭')
             sleep(1000)
-            anchor = textMatches(/\+\d*爆竹/).findOnce()
+            anchor = textMatches(/\+\d*快递箱/).findOnce()
         } catch (err) {
             pass
         }
@@ -654,15 +669,15 @@ function signTask() {
     return sign.click()
 }
 
-// 领取金币
+// 领取快递箱
 function havestCoin() {
-    console.log('准备领取自动积累的金币')
+    console.log('准备领取自动积累的快递箱')
     let h = textMatches(/.*点击领取.*|.*后存满.*/).findOne(5000)
     if (h) {
         h.click()
         console.log('领取成功')
         sleep(8000)
-    } else { console.log('未找到金币控件，领取失败') }
+    } else { console.log('未找到快递箱控件，领取失败') }
 }
 
 let startCoin = null
