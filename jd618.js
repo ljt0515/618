@@ -246,7 +246,7 @@ function getTaskByText() {
                 if (tCount) { // 如果数字相减不为0，证明没完成
                     tText = task[3].text()
                     if (!autoJoin && tText.match(/成功入会/)) continue
-                    if (tTitle.match(/下单|小程序|裂变|白条|小游戏/) || tText.match(/绑卡/)) continue
+                    if (tTitle.match(/下单|小程序|裂变|白条|金融|小游戏/) || tText.match(/绑卡/)) continue
                     tButton = button
                     break
                 }
